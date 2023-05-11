@@ -6,7 +6,7 @@ import torch
 from fastchat.serve.inference import load_model, generate_stream
 
 
-class Predictor:
+class AlpacaPredictor:
     def __init__(self, model_path, device, num_gpus, load_8bit=False, stream_interval=2, input_pattern="prompt"):
         if model_path.endswith("/"):
             model_path = model_path[:-1]
@@ -36,7 +36,7 @@ class Predictor:
         else:
             raise ValueError("input_pattern must be either 'prompt' or 'chat'")
 
-    def generate_stream_gate(self, prompt, max_length=256, temperature=1.0, session_id=None):
+    def generate_stream_gate(self, prompt, max_length=256, top_p=1.0, temperature=1.0, session_id=None):
         # 如果session_id存在，则将conv赋值给conv
         if session_id and session_id in self.histories.keys():
             input_prompt = self.histories[session_id]
@@ -48,12 +48,12 @@ class Predictor:
             # 否则，创建一个新的session_id，并创建一个新的Conversation
             session_id = str(uuid.uuid4()).replace('-', '')
             input_prompt = self.input_template.format(prompt=prompt)
-        print(input_prompt)
         # 模型参数
         gen_params = {
             "prompt": input_prompt,
-            "max_new_tokens": max_length,
+            "top_p": top_p,
             "temperature": temperature,
+            "max_new_tokens": max_length,
             "echo": False,
         }
         try:
@@ -70,8 +70,9 @@ class Predictor:
             yield json.dumps(ret).encode() + b"\0"
 
     # 非流式识别
-    def generate_gate(self, prompt, max_length=512, temperature=0.95, session_id=None):
-        generator = self.generate_stream_gate(prompt, max_length, temperature, session_id)
+    def generate_gate(self, prompt, max_length=512, top_p=1.0, temperature=0.95, session_id=None):
+        generator = self.generate_stream_gate(prompt=prompt, max_length=max_length, top_p=top_p,
+                                              temperature=temperature, session_id=session_id)
         result = ""
         session_id = None
         error_code = 0

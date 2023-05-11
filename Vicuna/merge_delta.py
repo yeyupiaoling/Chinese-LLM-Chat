@@ -1,11 +1,11 @@
 import argparse
 import os
-import shutil
 
 import torch
-from huggingface_hub import snapshot_download
 from tqdm import tqdm
 from transformers import LlamaForCausalLM, LlamaTokenizer
+
+from utils.utils import print_arguments
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--base_model", type=str, default="decapoda-research/llama-7b-hf", help="基本模型")
@@ -13,10 +13,7 @@ parser.add_argument("--delta_path", type=str, default="output/checkpoint-final/"
 parser.add_argument('--output_dir', type=str, default='models/', help="合并模型的保存目录")
 parser.add_argument("--cache_dir", type=str, default="cache/")
 args = parser.parse_args()
-print("----------------- 配置参数 ----------------------")
-for arg, value in vars(args).items():
-    print("%s: %s" % (arg, value))
-print("------------------------------------------------")
+print_arguments(args)
 
 
 print(f"加载基础模型：{args.base_model}")

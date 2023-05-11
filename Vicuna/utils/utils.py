@@ -5,6 +5,13 @@ import transformers
 from huggingface_hub import snapshot_download
 
 
+def print_arguments(args):
+    print("----------------- 配置参数 ----------------------")
+    for arg, value in vars(args).items():
+        print("%s: %s" % (arg, value))
+    print("------------------------------------------------")
+
+
 def download_data(save_path):
     p = snapshot_download(repo_id='Chinese-Vicuna/guanaco_belle_merge_v1.0', repo_type='dataset')
     os.makedirs(os.path.dirname(save_path), exist_ok=True)

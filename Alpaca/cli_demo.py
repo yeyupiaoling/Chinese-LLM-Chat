@@ -2,7 +2,8 @@ import argparse
 import os
 import platform
 
-from utils.alpaca_predictor import Predictor
+from utils.utils import print_arguments
+from utils.alpaca_predictor import AlpacaPredictor
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_path", type=str, default="./models/llama-7b-hf-finetune",   help="合并后的模型路径或者原模型名称")
@@ -12,13 +13,11 @@ parser.add_argument("--stream_interval", type=int, default=2,        help="流�
 parser.add_argument("--input_pattern",   type=str, default="prompt", help="使用输入的模板类型")
 parser.add_argument("--load_8bit",  action="store_true",  help="是否量化模型推理")
 args = parser.parse_args()
-print("----------------- 配置参数 ----------------------")
-for arg, value in vars(args).items():
-    print("%s: %s" % (arg, value))
-print("------------------------------------------------")
+print_arguments(args)
 
-predictor = Predictor(args.model_path, args.device, num_gpus=args.num_gpus,
-                      load_8bit=args.load_8bit, stream_interval=args.stream_interval, input_pattern=args.input_pattern)
+
+predictor = AlpacaPredictor(args.model_path, args.device, num_gpus=args.num_gpus, load_8bit=args.load_8bit,
+                            stream_interval=args.stream_interval, input_pattern=args.input_pattern)
 
 os_name = platform.system()
 clear_command = 'cls' if os_name == 'Windows' else 'clear'

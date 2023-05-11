@@ -1,21 +1,19 @@
 import argparse
 import os
-import shutil
 
 import torch
-from huggingface_hub import snapshot_download
 from peft import PeftModel, PeftConfig
 from transformers import AutoModel, AutoTokenizer
+
+from utils.utils import print_arguments
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--lora_model", type=str, default="output/checkpoint-final/", help="微调保存的模型路径")
 parser.add_argument("--output_dir", type=str, default="models/",  help="合并模型的保存目录")
 parser.add_argument("--cache_dir",  type=str, default="cache/",   help="模型缓存目录")
 args = parser.parse_args()
-print("----------------- 配置参数 ----------------------")
-for arg, value in vars(args).items():
-    print("%s: %s" % (arg, value))
-print("------------------------------------------------")
+print_arguments(args)
+
 
 # 检查模型文件是否存在
 assert os.path.exists(args.lora_model), f"模型文件{args.lora_model}不存在"

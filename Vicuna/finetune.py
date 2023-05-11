@@ -6,7 +6,7 @@ import random
 from transformers import Trainer, LlamaTokenizer, LlamaForCausalLM, TrainingArguments
 
 from utils.data_utils import CustomDataset, DataCollator
-from utils.utils import safe_save_model_for_hf_trainer, download_data
+from utils.utils import safe_save_model_for_hf_trainer, download_data, print_arguments
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--base_model",  type=str, default="decapoda-research/llama-7b-hf", help="微调的基础模型")
@@ -26,10 +26,8 @@ parser.add_argument("--num_train_epochs", type=int,   default=3,    help="总的
 parser.add_argument("--learning_rate",    type=float, default=5e-4, help="学习率大小")
 parser.add_argument("--input_pattern",    type=str,   default="prompt", help="使用输入的模板类型")
 args = parser.parse_args()
-print("----------------- 配置参数 ----------------------")
-for arg, value in vars(args).items():
-    print("%s: %s" % (arg, value))
-print("------------------------------------------------")
+print_arguments(args)
+
 
 # 下载数据集
 if 'merge.json' in args.data_path and not os.path.exists(args.data_path):

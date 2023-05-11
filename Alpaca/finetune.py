@@ -6,7 +6,7 @@ from peft import prepare_model_for_int8_training, LoraConfig, get_peft_model, Ta
 from transformers import LlamaForCausalLM, LlamaTokenizer, Trainer, TrainingArguments, DataCollatorForSeq2Seq
 from transformers.trainer_pt_utils import LabelSmoother
 
-from utils.utils import download_data, SavePeftModelCallback
+from utils.utils import download_data, SavePeftModelCallback, print_arguments
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--base_model",  type=str, default="decapoda-research/llama-7b-hf",    help="微调的基础模型")
@@ -28,10 +28,8 @@ parser.add_argument("--learning_rate",     type=float, default=5e-4,  help="学�
 parser.add_argument("--use_8bit",          type=bool,  default=True,  help="是否将模型量化为8位")
 parser.add_argument("--ignore_data_skip",  type=bool,  default=False, help="忽略数据不进行处理")
 args = parser.parse_args()
-print("----------------- 配置参数 ----------------------")
-for arg, value in vars(args).items():
-    print("%s: %s" % (arg, value))
-print("------------------------------------------------")
+print_arguments(args)
+
 
 # 用于填充的ID
 IGNORE_TOKEN_ID = LabelSmoother.ignore_index

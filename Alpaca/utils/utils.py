@@ -6,6 +6,13 @@ from transformers import TrainerCallback, TrainingArguments, TrainerState, Train
 from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR
 
 
+def print_arguments(args):
+    print("----------------- 配置参数 ----------------------")
+    for arg, value in vars(args).items():
+        print("%s: %s" % (arg, value))
+    print("------------------------------------------------")
+
+
 def download_data(save_path):
     p = snapshot_download(repo_id='Chinese-Vicuna/guanaco_belle_merge_v1.0', repo_type='dataset')
     os.makedirs(os.path.dirname(save_path), exist_ok=True)

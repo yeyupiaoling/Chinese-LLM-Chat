@@ -8,7 +8,7 @@ from transformers import AutoTokenizer, AutoModel
 from transformers import Trainer, TrainingArguments
 from transformers.trainer_pt_utils import LabelSmoother
 
-from utils.utils import download_data, get_masks_and_position_ids, SavePeftModelCallback
+from utils.utils import download_data, get_masks_and_position_ids, SavePeftModelCallback, print_arguments
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_path",  type=str, default="THUDM/chatglm-6b",    help="微调的基础模型")
@@ -31,10 +31,8 @@ parser.add_argument("--learning_rate",     type=float, default=5e-4,  help="学�
 parser.add_argument("--use_8bit",          type=bool, default=True,   help="是否将模型量化为8位")
 parser.add_argument("--ignore_data_skip",  type=bool,  default=False, help="忽略数据不进行处理")
 args = parser.parse_args()
-print("----------------- 配置参数 ----------------------")
-for arg, value in vars(args).items():
-    print("%s: %s" % (arg, value))
-print("------------------------------------------------")
+print_arguments(args)
+
 
 # 用于填充的ID
 IGNORE_TOKEN_ID = LabelSmoother.ignore_index
