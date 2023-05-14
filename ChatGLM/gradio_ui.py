@@ -1,20 +1,22 @@
 import argparse
+import functools
 import json
 
 import gradio as gr
 import mdtex2html
 
-from utils.utils import print_arguments
+from utils.utils import print_arguments, add_arguments
 from utils.chatglm_predictor import ChatGLMPredictor
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model_path", type=str, default="./models/chatglm-6b-finetune",  help="合并后的模型路径或者原模型名称")
-parser.add_argument("--cache_dir",  type=str, default="cache/",               help="模型缓存目录")
-parser.add_argument("--device",     type=str, choices=["cpu", "cuda", "mps"], default="cuda", help="使用哪个设备推理")
-parser.add_argument("--num_gpus",   type=int, default=2,  help="使用多少个GPU推理")
-parser.add_argument("--input_pattern", type=str, default="prompt", help="使用输入的模板类型")
-parser.add_argument("--share",      action="store_true",  help="是否共享链路")
-parser.add_argument("--load_8bit",  action="store_true",  help="是否量化模型推理")
+add_arg = functools.partial(add_arguments, argparser=parser)
+add_arg("model_path", type=str, default="./models/chatglm-6b-finetune",  help="合并后的模型路径或者原模型名称")
+add_arg("cache_dir",  type=str, default="cache/",               help="模型缓存目录")
+add_arg("device",     type=str, choices=["cpu", "cuda", "mps"], default="cuda", help="使用哪个设备推理")
+add_arg("num_gpus",   type=int, default=2,  help="使用多少个GPU推理")
+add_arg("input_pattern", type=str, default="prompt", help="使用输入的模板类型")
+add_arg("share",      type=bool, default=False,  help="是否共享链路")
+add_arg("load_8bit",  type=bool, default=False,  help="是否量化模型推理")
 args = parser.parse_args()
 print_arguments(args)
 

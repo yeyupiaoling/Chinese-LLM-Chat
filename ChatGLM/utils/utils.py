@@ -14,6 +14,25 @@ def print_arguments(args):
     print("------------------------------------------------")
 
 
+def strtobool(val):
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError("invalid truth value %r" % (val,))
+
+
+def add_arguments(argname, type, default, help, argparser, **kwargs):
+    type = strtobool if type == bool else type
+    argparser.add_argument("--" + argname,
+                           default=default,
+                           type=type,
+                           help=help + ' Default: %(default)s.',
+                           **kwargs)
+
+
 def download_data(save_path):
     p = snapshot_download(repo_id='Chinese-Vicuna/guanaco_belle_merge_v1.0', repo_type='dataset')
     os.makedirs(os.path.dirname(save_path), exist_ok=True)

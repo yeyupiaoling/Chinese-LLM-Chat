@@ -1,17 +1,19 @@
 import argparse
+import functools
 import os
 
 import torch
 from tqdm import tqdm
 from transformers import LlamaForCausalLM, LlamaTokenizer
 
-from utils.utils import print_arguments
+from utils.utils import print_arguments, add_arguments
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--base_model", type=str, default="decapoda-research/llama-7b-hf", help="基本模型")
-parser.add_argument("--delta_path", type=str, default="output/checkpoint-final/", help="微调保存的模型路径", choices=['lmsys/vicuna-7b-delta-v1.1', 'lmsys/vicuna-13b-delta-v1.1'])
+add_arg = functools.partial(add_arguments, argparser=parser)
+add_arg("base_model", type=str, default="decapoda-research/llama-7b-hf", help="基本模型")
+add_arg("delta_path", type=str, default="output/checkpoint-final/", help="微调保存的模型路径", choices=['lmsys/vicuna-7b-delta-v1.1', 'lmsys/vicuna-13b-delta-v1.1'])
 parser.add_argument('--output_dir', type=str, default='models/', help="合并模型的保存目录")
-parser.add_argument("--cache_dir", type=str, default="cache/")
+add_arg("cache_dir", type=str, default="cache/")
 args = parser.parse_args()
 print_arguments(args)
 

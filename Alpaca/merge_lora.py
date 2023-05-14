@@ -1,17 +1,19 @@
 import argparse
+import functools
 import os
 
 import torch
 from peft import PeftModel, PeftConfig
 from transformers import LlamaForCausalLM, LlamaTokenizer
 
-from utils.utils import print_arguments
+from utils.utils import print_arguments, add_arguments
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--lora_model", type=str, default="output/checkpoint-final/", help="微调保存的模型路径",
+add_arg = functools.partial(add_arguments, argparser=parser)
+add_arg("lora_model", type=str, default="output/checkpoint-final/", help="微调保存的模型路径",
                     choices=['Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco'])
-parser.add_argument("--output_dir", type=str, default="models/", help="合并模型的保存目录")
-parser.add_argument("--cache_dir",  type=str, default="cache/",  help="模型缓存目录")
+add_arg("output_dir", type=str, default="models/", help="合并模型的保存目录")
+add_arg("cache_dir",  type=str, default="cache/",  help="模型缓存目录")
 args = parser.parse_args()
 print_arguments(args)
 

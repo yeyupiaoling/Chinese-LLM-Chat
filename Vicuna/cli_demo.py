@@ -1,17 +1,19 @@
 import argparse
+import functools
 import os
 import platform
 
-from utils.utils import print_arguments
+from utils.utils import print_arguments, add_arguments
 from utils.vicuna_predictor import VicunaPredictor
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model_path", type=str, default="./models/llama-7b-hf-finetune",   help="合并后的模型路径或者原模型名称")
-parser.add_argument("--device",     type=str, choices=["cpu", "cuda", "mps"], default="cuda", help="使用哪个设备推理")
-parser.add_argument("--num_gpus",   type=int, default=2, help="使用多少个GPU推理")
-parser.add_argument("--stream_interval", type=int, default=2,        help="流式识别的分割大小")
-parser.add_argument("--input_pattern",   type=str, default="prompt", help="使用输入的模板类型")
-parser.add_argument("--load_8bit",  action="store_true",  help="是否量化模型推理")
+add_arg = functools.partial(add_arguments, argparser=parser)
+add_arg("model_path", type=str, default="./models/llama-7b-hf-finetune",   help="合并后的模型路径或者原模型名称")
+add_arg("device",     type=str, choices=["cpu", "cuda", "mps"], default="cuda", help="使用哪个设备推理")
+add_arg("num_gpus",   type=int, default=2, help="使用多少个GPU推理")
+add_arg("stream_interval", type=int, default=2,        help="流式识别的分割大小")
+add_arg("input_pattern",   type=str, default="prompt", help="使用输入的模板类型")
+add_arg("load_8bit",  action="store_true",  help="是否量化模型推理")
 args = parser.parse_args()
 print_arguments(args)
 
