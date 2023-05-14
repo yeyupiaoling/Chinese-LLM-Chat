@@ -3,11 +3,26 @@
 当前文件夹主要使用Lora对LLama模型的微调，然后合并模型。在使用方面包含了两种使用方式，分别是直接在终端上面运行，该方式是非流式的，也就是直接显示结果，没有打字过程。另外一种是使用Gradio技术在网页中使用，这个过程是流式的，可以实时显示打字效果。
 
 
+# 准备数据集
+
+在开启微调模型之前，需要准备好数据，数据的格式如下面所示，是一个JSON的数据列表，在[HuggingFace](https://huggingface.co/datasets/Chinese-Vicuna/guanaco_belle_merge_v1.0)
+也有一个开源的数据集。如果想自定义数据集的话，请按照以下格式生成。
+
+```json
+[
+  {
+    "instruction": "用一句话描述地球为什么是独一无二的。\n ",
+    "input": "",
+    "output": "地球上有适宜生命存在的条件和多样化的生命形式。"
+  }
+]
+```
+
 # 微调模型
 
 `finetune.py`就是微调LLama模型的，训练最重要的两个参数分别是：
  - `--base_model`指定微调的基础模型，这个参数值需要在[HuggingFace](https://huggingface.co/decapoda-research)存在的，默认的是`decapoda-research/llama-7b-hf`，这个不需要提前下载，启动训练时可以自动下载，当然也可以提前下载，那么`--base_model`指定就是路径，同时`--local_files_only`设置为True。
- - `--data_path`指定的是数据集路径。
+ - `--data_path`指定的是数据集路径，如果文件不存在会[HuggingFace](https://huggingface.co/datasets/Chinese-Vicuna/guanaco_belle_merge_v1.0)自动下载。
  - `--per_device_train_batch_size`指定的训练的batch大小，如果修改了这个参数，同时也要修改`--gradient_accumulation_steps`，使得它们的乘积一样。
  - `--output_path`指定训练时保存的检查点路径。
  - `--use_8bit`指定是否使用量化模型训练，如果想显存足够的话，最好将设置为False，这样训练速度快很多。
