@@ -57,7 +57,6 @@ world_size = int(os.environ.get("WORLD_SIZE", 1))
 ddp = world_size != 1
 if ddp:
     device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
-    args.per_device_train_batch_size = args.per_device_train_batch_size * world_size
 
 # 下载数据集
 if 'merge.json' in args.data_path and not os.path.exists(args.data_path):
