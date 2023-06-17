@@ -4,9 +4,8 @@
 
 # 目录结构
 
- - `Alpaca`：使用Lora微调LLama模型。
- - `ChatGLM`：使用Lora微调ChatGLM-6B模型。
- - `Vicuna`：微调LLama模型。
+ - `Guanaco`：使用QLora微调LLama模型。
+ - `ChatGLM`：使用QLora微调ChatGLM-6B模型。
  - `LangChina`：使用langchain实现本地知识库聊天。
 
 ## 安装环境

@@ -1,6 +1,6 @@
 # 项目介绍
 
-当前文件夹主要使用Lora对GhatGLM-6B模型的微调，然后合并模型。在使用方面包含了两种使用方式，分别是直接在终端上面运行，该方式是非流式的，也就是直接显示结果，没有打字过程。另外一种是使用Gradio技术在网页中使用，这个过程是流式的，可以实时显示打字效果。
+当前文件夹主要使用QLora对GhatGLM-6B模型的微调，然后合并模型。在使用方面包含了两种使用方式，分别是直接在终端上面运行，该方式是非流式的，也就是直接显示结果，没有打字过程。另外一种是使用Gradio技术在网页中使用，这个过程是流式的，可以实时显示打字效果。
 
 
 # 准备数据集
@@ -23,7 +23,7 @@
 
 `finetune.py`就是微调GhatGLM-6B模型的，训练最重要的两个参数分别是：
  - `--base_model`指定微调的基础模型，这个参数值需要在[HuggingFace](https://huggingface.co/THUDM)存在的，目前只有`THUDM/chatglm-6b`，这个不需要提前下载，启动训练时可以自动下载，当然也可以提前下载，那么`--base_model`指定就是路径，同时`--local_files_only`设置为True。
- - `--data_path`指定的是数据集路径，如果文件不存在会[HuggingFace](https://huggingface.co/datasets/Chinese-Vicuna/guanaco_belle_merge_v1.0)自动下载。
+ - `--data_path`指定的是数据集路径，如果自己的数据，可以在这里[HuggingFace](https://huggingface.co/datasets/Chinese-Vicuna/guanaco_belle_merge_v1.0)下载下载数据来使用。
  - `--per_device_train_batch_size`指定的训练的batch大小，如果修改了这个参数，同时也要修改`--gradient_accumulation_steps`，使得它们的乘积一样。
  - `--output_path`指定训练时保存的检查点路径。
  - `--use_8bit`指定是否使用量化模型训练，如果想显存足够的话，最好将设置为False，这样训练速度快很多。

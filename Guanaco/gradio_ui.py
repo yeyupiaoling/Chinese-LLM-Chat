@@ -6,11 +6,11 @@ import gradio as gr
 import mdtex2html
 
 from utils.utils import print_arguments, add_arguments
-from utils.vicuna_predictor import VicunaPredictor
+from utils.guanaco_predictor import Predictor
 
 parser = argparse.ArgumentParser()
 add_arg = functools.partial(add_arguments, argparser=parser)
-add_arg("model_path", type=str, default="./models/llama-7b-hf-finetune",   help="合并后的模型路径或者原模型名称")
+add_arg("model_path", type=str, default="./models/llama-7b-hf-finetune",   help="合并后的模型路径")
 add_arg("device",     type=str, choices=["cpu", "cuda", "mps"], default="cuda", help="使用哪个设备推理")
 add_arg("num_gpus",   type=int, default=2,  help="使用多少个GPU推理")
 add_arg("stream_interval", type=int, default=2,        help="流式识别的分割大小")
@@ -22,8 +22,8 @@ print_arguments(args)
 
 
 # 获取模型推理器
-predictor = VicunaPredictor(args.model_path, args.device, num_gpus=args.num_gpus,
-                            load_8bit=args.load_8bit, stream_interval=args.stream_interval, input_pattern=args.input_pattern)
+predictor = Predictor(args.model_path, args.device, num_gpus=args.num_gpus, load_8bit=args.load_8bit,
+                      stream_interval=args.stream_interval, input_pattern=args.input_pattern)
 
 
 def postprocess(self, y):
@@ -107,7 +107,7 @@ with gr.Blocks() as demo:
                 submitBtn = gr.Button("Submit", variant="primary")
         with gr.Column(scale=1):
             emptyBtn = gr.Button("Clear History")
-            max_length = gr.Slider(0, 4096, value=256, step=1.0, label="Maximum length", interactive=True)
+            max_length = gr.Slider(0, 4096, value=512, step=1.0, label="Maximum length", interactive=True)
             temperature = gr.Slider(0, 1, value=1.0, step=0.01, label="Temperature", interactive=True)
 
     session_id = gr.State('')
