@@ -144,7 +144,7 @@ def preprocess(example):
 dataset = dataset.map(preprocess, num_proc=10)
 
 # 训练参数
-output_dir = os.path.join(args.output_path, os.path.dirname(args.base_model))
+output_dir = os.path.join(args.output_path, os.path.basename(args.base_model))
 train_args = Seq2SeqTrainingArguments(output_dir=output_dir,
                                       per_device_train_batch_size=args.per_device_train_batch_size,
                                       gradient_accumulation_steps=args.gradient_accumulation_steps,
