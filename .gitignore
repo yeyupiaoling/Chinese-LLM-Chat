@@ -1,11 +1,8 @@
 .idea/
 __pycache__/
-Vicuna/cache/
+Guanaco/cache/
 ChatGLM/cache/
-Alpaca/cache/
-Vicuna/dataset/
+Guanaco/dataset/
 ChatGLM/dataset/
-Alpaca/dataset/
-Vicuna/output/
+Guanaco/output/
 ChatGLM/output/
-Alpaca/output/
