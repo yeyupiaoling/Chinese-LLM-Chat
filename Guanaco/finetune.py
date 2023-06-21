@@ -6,13 +6,13 @@ from typing import Any
 import torch
 import transformers
 from datasets import load_dataset
-from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model, set_peft_model_state_dict
+from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model, PeftModel
 from peft.tuners.lora import LoraLayer
-from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed, Seq2SeqTrainer, LlamaTokenizer, \
-    BitsAndBytesConfig, Seq2SeqTrainingArguments
+from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed, Seq2SeqTrainer, BitsAndBytesConfig, \
+    Seq2SeqTrainingArguments
 
-from utils.model_utils import DataCollatorForCausalLM, smart_tokenizer_and_embedding_resize, find_all_linear_names, \
-    DEFAULT_PAD_TOKEN, SavePeftModelCallback
+from utils.template import Template
+from utils.model_utils import DataCollatorForCausalLM, find_all_linear_names, load_from_checkpoint
 from utils.utils import print_arguments, add_arguments
 
 parser = argparse.ArgumentParser()
@@ -79,26 +79,27 @@ def get_model(args):
                                                  device_map=device_map,
                                                  quantization_config=quantization_config,
                                                  torch_dtype=torch_dtype)
-
     setattr(model, 'model_parallel', True)
     setattr(model, 'is_parallelizable', True)
     # 量化
     model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=args.gradient_checkpointing)
 
     print('加载LoRA模块...')
-    target_modules = find_all_linear_names(args.bits, model)
-    print(target_modules)
-    config = LoraConfig(r=args.lora_r,
-                        lora_alpha=args.lora_alpha,
-                        target_modules=target_modules,
-                        lora_dropout=args.lora_dropout,
-                        bias="none",
-                        task_type="CAUSAL_LM")
-    model = get_peft_model(model, config)
-    # 恢复训练时加载Lora参数
     if args.resume_from_checkpoint:
-        adapters_dict = torch.load(f'{args.resume_from_checkpoint}/pytorch_model.bin')
-        set_peft_model_state_dict(model=model, peft_model_state_dict=adapters_dict)
+        # 恢复训练时加载Lora参数
+        print("Loading adapters from checkpoint.")
+        model = PeftModel.from_pretrained(model, args.resume_from_checkpoint, is_trainable=True)
+    else:
+        print(f'adding LoRA modules...')
+        target_modules = find_all_linear_names(args.bits, model)
+        print(target_modules)
+        config = LoraConfig(r=args.lora_r,
+                            lora_alpha=args.lora_alpha,
+                            target_modules=target_modules,
+                            lora_dropout=args.lora_dropout,
+                            bias="none",
+                            task_type="CAUSAL_LM")
+        model = get_peft_model(model, config)
 
     for name, module in model.named_modules():
         if isinstance(module, LoraLayer):
@@ -118,37 +119,25 @@ def get_model(args):
     return model
 
 
-def get_tokenizer(args, model):
+def get_tokenizer(args):
     tokenizer = AutoTokenizer.from_pretrained(args.base_model,
                                               cache_dir=args.cache_dir,
                                               local_files_only=args.local_files_only,
                                               padding_side="right",
                                               use_fast=False,
                                               tokenizer_type='llama')
-    if tokenizer._pad_token is None:
-        smart_tokenizer_and_embedding_resize(special_tokens_dict=dict(pad_token=DEFAULT_PAD_TOKEN),
-                                             tokenizer=tokenizer,
-                                             model=model)
-    if isinstance(tokenizer, LlamaTokenizer):
-        tokenizer.add_special_tokens({
-            "eos_token": tokenizer.convert_ids_to_tokens(model.config.eos_token_id),
-            "bos_token": tokenizer.convert_ids_to_tokens(model.config.bos_token_id),
-            "unk_token": tokenizer.convert_ids_to_tokens(
-                model.config.pad_token_id if model.config.pad_token_id != -1 else tokenizer.pad_token_id
-            ),
-        })
+    tokenizer.pad_token_id = 0 if tokenizer.pad_token_id is None else tokenizer.pad_token_id
     return tokenizer
 
 
 def make_data_module(tokenizer: transformers.PreTrainedTokenizer, args) -> (Any, Any):
+    prompt_template = Template(name="default")
+
     def preprocess(example):
         instruction, input_, output = example['instruction'], example['input'], example['output']
-        prompt = f"Instruction: {instruction}\n"
-        if input_ != '' and input_ is not None:
-            prompt += f"{input_}\n"
-        prompt += "Answer: "
-        target = output
-        return {"input": prompt, "output": target, "length": len(prompt) + len(target)}
+        query = instruction + input_
+        prompt = prompt_template.get_prompt(query, history=None)
+        return {"input": prompt, "output": output, "length": len(prompt) + len(output)}
 
     dataset = load_dataset("json", data_files={'train': args.data_path})
     train_dataset = dataset.map(preprocess, num_proc=10)['train']
@@ -163,7 +152,7 @@ def make_data_module(tokenizer: transformers.PreTrainedTokenizer, args) -> (Any,
 def main():
     model = get_model(args)
     # Tokenizer
-    tokenizer = get_tokenizer(args, model=model)
+    tokenizer = get_tokenizer(args)
     set_seed(1234)
 
     train_dataset, data_collator = make_data_module(tokenizer=tokenizer, args=args)
@@ -194,8 +183,8 @@ def main():
                              tokenizer=tokenizer,
                              args=training_args,
                              train_dataset=train_dataset,
-                             data_collator=data_collator,
-                             callbacks=[SavePeftModelCallback])
+                             data_collator=data_collator)
+    trainer._load_from_checkpoint = load_from_checkpoint
 
     # Training
     trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)

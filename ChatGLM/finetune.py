@@ -4,10 +4,10 @@ import os
 
 import torch
 from datasets import load_dataset
-from peft import get_peft_model, LoraConfig, set_peft_model_state_dict, prepare_model_for_kbit_training, TaskType
+from peft import get_peft_model, LoraConfig, prepare_model_for_kbit_training, PeftModel
 from transformers import AutoTokenizer, AutoModel, BitsAndBytesConfig, Seq2SeqTrainingArguments, Seq2SeqTrainer
 
-from utils.model_utils import find_all_linear_names, SavePeftModelCallback, IGNORE_TOKEN_ID
+from utils.model_utils import find_all_linear_names, IGNORE_TOKEN_ID, load_from_checkpoint
 from utils.utils import add_arguments, print_arguments
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -82,19 +82,21 @@ model = AutoModel.from_pretrained(args.base_model,
 model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=args.gradient_checkpointing)
 
 print('加载LoRA模块...')
-target_modules = find_all_linear_names(args.bits, model)
-print(target_modules)
-peft_config = LoraConfig(r=args.lora_r,
-                         lora_alpha=args.lora_alpha,
-                         target_modules=target_modules,
-                         lora_dropout=args.lora_dropout,
-                         bias="none",
-                         task_type=TaskType.CAUSAL_LM)
-model = get_peft_model(model, peft_config)
-# 恢复训练时加载Lora参数
 if args.resume_from_checkpoint:
-    adapters_dict = torch.load(f'{args.resume_from_checkpoint}/pytorch_model.bin')
-    set_peft_model_state_dict(model=model, peft_model_state_dict=adapters_dict)
+    # 恢复训练时加载Lora参数
+    print("Loading adapters from checkpoint.")
+    model = PeftModel.from_pretrained(model, args.resume_from_checkpoint, is_trainable=True)
+else:
+    print(f'adding LoRA modules...')
+    target_modules = find_all_linear_names(args.bits, model)
+    print(target_modules)
+    config = LoraConfig(r=args.lora_r,
+                        lora_alpha=args.lora_alpha,
+                        target_modules=target_modules,
+                        lora_dropout=args.lora_dropout,
+                        bias="none",
+                        task_type="CAUSAL_LM")
+    model = get_peft_model(model, config)
 
 
 def data_collator(features: list) -> dict:
@@ -175,8 +177,8 @@ trainer = Seq2SeqTrainer(model=model,
                          tokenizer=tokenizer,
                          args=train_args,
                          train_dataset=dataset["train"],
-                         callbacks=[SavePeftModelCallback],
                          data_collator=data_collator)
+trainer._load_from_checkpoint = load_from_checkpoint
 
 # 开始训练
 trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)

@@ -74,10 +74,9 @@ def parse_text(text):
 
 def predict(input, chatbot, max_length, top_p, temperature, session_id):
     chatbot.append((parse_text(input), ""))
-    generater = predictor.generate_stream_gate(prompt=input, session_id=session_id, max_length=max_length, top_p=top_p,
-                                               temperature=temperature)
+    generater = predictor.generate_stream(prompt=input, session_id=session_id, max_length=max_length, top_p=top_p,
+                                          temperature=temperature)
     for output in generater:
-        output = json.loads(output[:-1].decode("utf-8"))
         session_id = output['session_id']
         code = output['code']
         if code != 0:

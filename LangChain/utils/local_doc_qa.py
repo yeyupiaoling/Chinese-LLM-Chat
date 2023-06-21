@@ -106,9 +106,8 @@ class LocalDocQA:
         prompt = generate_prompt(related_docs, query)
         print(prompt)
         if streaming:
-            for output in self.llm_model.generate_stream_gate(prompt=prompt, session_id=session_id, **kwargs):
+            for output in self.llm_model.generate_stream(prompt=prompt, session_id=session_id, **kwargs):
                 torch_gc()
-                output = json.loads(output[:-1].decode("utf-8"))
                 session_id = output['session_id']
                 result = output['response']
 
@@ -118,7 +117,7 @@ class LocalDocQA:
                 yield response, session_id
                 torch_gc()
         else:
-            output = self.llm_model.generate_gate(prompt=prompt, session_id=session_id, **kwargs)
+            output = self.llm_model.generate(prompt=prompt, session_id=session_id, **kwargs)
             torch_gc()
             session_id = output['session_id']
             result = output['response']

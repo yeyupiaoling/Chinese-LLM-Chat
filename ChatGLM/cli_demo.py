@@ -2,6 +2,7 @@ import argparse
 import functools
 import os
 import platform
+import sys
 
 from utils.utils import print_arguments, add_arguments
 from utils.chatglm_predictor import ChatGLMPredictor
@@ -31,7 +32,13 @@ def main():
     global session_id
     print("输入内容即可进行对话，clear 清空对话历史，stop 终止程序")
     while True:
-        query = input("\n用户：")
+        try:
+            query = input("\n用户：")
+        except UnicodeDecodeError:
+            print("Detected decoding error at the inputs, please set the terminal encoding to utf-8.", file=sys.stderr)
+            continue
+        except Exception:
+            raise
         if query.strip() == "stop":
             break
         if query.strip() == "clear":
@@ -39,11 +46,14 @@ def main():
             os.system(clear_command)
             print("输入内容即可进行对话，clear 清空对话历史，stop 终止程序")
             continue
-        # 非流式输出
-        result = predictor.generate_gate(prompt=query, session_id=session_id)
-        response = result['response']
-        session_id = result['session_id']
-        print(f"助手：{response}")
+        # 流式输出
+        generator = predictor.generate_stream(prompt=query, session_id=session_id)
+        print("助手：", end="", flush=True)
+        for output in generator:
+            session_id = output['session_id']
+            result = output['response']
+            print(result, end="", flush=True)
+        print()
 
 
 if __name__ == "__main__":

@@ -1,11 +1,6 @@
-import os
-import shutil
-
 import bitsandbytes as bnb
 import torch
-from transformers import TrainerCallback, TrainingArguments, TrainerState, TrainerControl
 from transformers.trainer_pt_utils import LabelSmoother
-from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR
 
 IGNORE_TOKEN_ID = LabelSmoother.ignore_index
 
@@ -23,18 +18,5 @@ def find_all_linear_names(bits, model):
     return list(lora_module_names)
 
 
-# 保存模型回调，用于修改模型名称
-class SavePeftModelCallback(TrainerCallback):
-    def on_save(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
-        if args.local_rank == 0 or args.local_rank == -1:
-            checkpoint_folder = os.path.join(args.output_dir, f"{PREFIX_CHECKPOINT_DIR}-{state.global_step}")
-
-            peft_model_dir = os.path.join(checkpoint_folder, "adapter_model")
-            kwargs["model"].save_pretrained(peft_model_dir)
-
-            peft_model_path = os.path.join(checkpoint_folder, "adapter_model/adapter_model.bin")
-            pytorch_model_path = os.path.join(checkpoint_folder, "pytorch_model.bin")
-            if os.path.exists(pytorch_model_path):
-                os.remove(pytorch_model_path)
-            shutil.copy(peft_model_path, pytorch_model_path)
-        return control
+def load_from_checkpoint(resume_from_checkpoint, model=None):
+    pass

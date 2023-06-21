@@ -1,17 +1,13 @@
 import copy
-import os
-import shutil
 from dataclasses import dataclass
 from typing import Dict, Sequence
 
 import bitsandbytes as bnb
-import peft
 import torch
 import transformers
 from torch.nn.utils.rnn import pad_sequence
-from transformers import TrainerCallback, TrainingArguments, TrainerState, TrainerControl
+from transformers import LogitsProcessor, LogitsProcessorList
 from transformers.trainer_pt_utils import LabelSmoother
-from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR
 
 IGNORE_TOKEN_ID = LabelSmoother.ignore_index
 DEFAULT_PAD_TOKEN = "[PAD]"
@@ -28,29 +24,6 @@ def find_all_linear_names(bits, model):
     if 'lm_head' in lora_module_names:  # needed for 16-bit
         lora_module_names.remove('lm_head')
     return list(lora_module_names)
-
-
-def smart_tokenizer_and_embedding_resize(
-        special_tokens_dict: Dict,
-        tokenizer: transformers.PreTrainedTokenizer,
-        model: peft.PeftModel,
-):
-    """Resize tokenizer and embedding.
-
-    Note: This is the unoptimized version that may make your embedding size not be divisible by 64.
-    """
-    num_new_tokens = tokenizer.add_special_tokens(special_tokens_dict)
-    model.resize_token_embeddings(len(tokenizer))
-
-    if num_new_tokens > 0:
-        input_embeddings = model.get_input_embeddings().weight.data
-        output_embeddings = model.get_output_embeddings().weight.data
-
-        input_embeddings_avg = input_embeddings[:-num_new_tokens].mean(dim=0, keepdim=True)
-        output_embeddings_avg = output_embeddings[:-num_new_tokens].mean(dim=0, keepdim=True)
-
-        input_embeddings[-num_new_tokens:] = input_embeddings_avg
-        output_embeddings[-num_new_tokens:] = output_embeddings_avg
 
 
 @dataclass
@@ -91,18 +64,21 @@ class DataCollatorForCausalLM(object):
         return data_dict
 
 
-# 保存模型回调，用于修改模型名称
-class SavePeftModelCallback(TrainerCallback):
-    def on_save(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
-        if args.local_rank == 0 or args.local_rank == -1:
-            checkpoint_folder = os.path.join(args.output_dir, f"{PREFIX_CHECKPOINT_DIR}-{state.global_step}")
+class InvalidScoreLogitsProcessor(LogitsProcessor):
 
-            peft_model_dir = os.path.join(checkpoint_folder, "adapter_model")
-            kwargs["model"].save_pretrained(peft_model_dir)
+    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> torch.FloatTensor:
+        if torch.isnan(scores).any() or torch.isinf(scores).any():
+            scores.zero_()
+            scores[..., 0] = 1.0
+        return scores
 
-            peft_model_path = os.path.join(checkpoint_folder, "adapter_model/adapter_model.bin")
-            pytorch_model_path = os.path.join(checkpoint_folder, "pytorch_model.bin")
-            if os.path.exists(pytorch_model_path):
-                os.remove(pytorch_model_path)
-            shutil.copy(peft_model_path, pytorch_model_path)
-        return control
+
+def get_logits_processor() -> LogitsProcessorList:
+    logits_processor = LogitsProcessorList()
+    logits_processor.append(InvalidScoreLogitsProcessor())
+    return logits_processor
+
+
+def load_from_checkpoint(resume_from_checkpoint, model=None):
+    pass
+
