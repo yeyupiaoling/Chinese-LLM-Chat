@@ -125,12 +125,16 @@ def data_collator(features: list) -> dict:
 
 # 数据预处理
 def preprocess(example):
-    instruction, input_, output = example['instruction'], example['input'], example['output']
-    prompt = f"Instruction: {instruction}\n"
-    if input_ != '' and input_ is not None:
-        prompt += f"{input_}\n"
-    prompt += "Answer: "
-    target = output
+    history = []
+    instruction, input_, target = example["instruction"], example['input'], example["output"]
+    if input_ is not None:
+        instruction = instruction + input_
+    if 'history' in example.keys() and example["history"] is not None:
+        history = example["history"]
+    prompt = ""
+    for turn_idx, (old_query, response) in enumerate(history):
+        prompt += "[Round {}]\n问：{}\n答：{}\n".format(turn_idx, old_query, response)
+    prompt += "[Round {}]\n问：{}\n答：".format(len(history), instruction)
     # 将文本转换为token_id
     prompt_ids = tokenizer.encode(prompt, add_special_tokens=False)
     target_ids = tokenizer.encode(target, add_special_tokens=False)

@@ -20,7 +20,7 @@ print_arguments(args)
 
 # 获取Lora配置参数
 peft_config = PeftConfig.from_pretrained(args.lora_model)
-# 获取ChatGLM的基本模型
+# 获取基本模型
 base_model = AutoModelForCausalLM.from_pretrained(peft_config.base_model_name_or_path,
                                                   local_files_only=args.local_files_only,
                                                   low_cpu_mem_usage=True,

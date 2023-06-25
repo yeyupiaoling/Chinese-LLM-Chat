@@ -44,7 +44,7 @@ CUDA_VISIBLE_DEVICES=0 python finetune.py --base_model=THUDM/chatglm-6b --output
 1. 使用torchrun启动多卡训练，命令如下，通过`--nproc_per_node`指定使用的显卡数量。
 
 ```shell
-torchrun --nproc_per_node=2 finetune.py --base_model=THUDM/chatglm-6b --output_dir=output/
+CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=2 finetune.py --base_model=THUDM/chatglm-6b --output_dir=output/
 ```
 
 2. 使用accelerate启动多卡训练，如果是第一次使用accelerate，要配置训练参数，方式如下。

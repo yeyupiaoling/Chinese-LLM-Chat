@@ -32,7 +32,7 @@ base_tokenizer = AutoTokenizer.from_pretrained(peft_config.base_model_name_or_pa
                                                trust_remote_code=True,
                                                cache_dir=args.cache_dir)
 # 与Lora模型合并
-model = PeftModel.from_pretrained(base_model, args.lora_model, torch_dtype=torch.float16)
+model = PeftModel.from_pretrained(base_model, args.lora_model)
 
 # 保存的文件夹路径
 save_directory = os.path.join(args.output_dir, f'{os.path.basename(peft_config.base_model_name_or_path)}-finetune')

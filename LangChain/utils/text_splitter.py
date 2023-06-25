@@ -1,7 +1,7 @@
 from langchain.text_splitter import CharacterTextSplitter
 import re
 from typing import List
-from chains.model_config import SENTENCE_SIZE
+from utils.model_config import SENTENCE_SIZE
 
 
 class ChineseTextSplitter(CharacterTextSplitter):

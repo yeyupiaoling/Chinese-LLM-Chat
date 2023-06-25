@@ -134,9 +134,13 @@ def make_data_module(tokenizer: transformers.PreTrainedTokenizer, args) -> (Any,
     prompt_template = Template(name="default")
 
     def preprocess(example):
+        history = None
         instruction, input_, output = example['instruction'], example['input'], example['output']
-        query = instruction + input_
-        prompt = prompt_template.get_prompt(query, history=None)
+        if 'history' in example.keys():
+            history = example["history"]
+        if input_ is not None:
+            instruction = instruction + input_
+        prompt = prompt_template.get_prompt(instruction, history=history)
         return {"input": prompt, "output": output, "length": len(prompt) + len(output)}
 
     dataset = load_dataset("json", data_files={'train': args.data_path})

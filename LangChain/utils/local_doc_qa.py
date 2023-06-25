@@ -1,4 +1,3 @@
-import json
 import os
 import sys
 from typing import List
@@ -7,15 +6,15 @@ from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
 from tqdm import tqdm
 
-from chains.model_config import embedding_model_dict
-from chains.utils import torch_gc, load_file, similarity_search_with_score_by_vector, get_docs_with_score, \
+from utils.model_config import embedding_model_dict
+from utils.predictor import ChatGLMPredictor
+from utils.utils import torch_gc, load_file, similarity_search_with_score_by_vector, get_docs_with_score, \
     generate_prompt
-from utils.predictor import Predictor
 
 
 class LocalDocQA:
 
-    def __init__(self, llm_model: Predictor, embedding_model: str = 'ernie-base', vs_path: str = "vector_store/",
+    def __init__(self, llm_model: ChatGLMPredictor, embedding_model: str = 'ernie-base', vs_path: str = "vector_store/",
                  top_k=5, chunk_size=250, device="cuda", cache_dir='cache/'):
         """
         本地知识问答器

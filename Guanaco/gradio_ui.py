@@ -1,25 +1,27 @@
 import argparse
 import functools
-import json
 
 import gradio as gr
 import mdtex2html
 
-from utils.utils import print_arguments, add_arguments
 from utils.guanaco_predictor import Predictor
+from utils.utils import print_arguments, add_arguments
 
 parser = argparse.ArgumentParser()
 add_arg = functools.partial(add_arguments, argparser=parser)
-add_arg("model_path", type=str, default="./models/llama-7b-finetune",   help="合并后的模型路径")
-add_arg("bits", type=int, default=4, help="使用量化多少位")
-add_arg("fp16", type=bool, default=False, help="是否半精度推理")
+add_arg("model_path", type=str,  default="./models/llama-7b-finetune",   help="合并后的模型路径")
+add_arg("lora_model", type=str,  default=None,        help="不使用合并模型，直接使用Lora模型")
+add_arg("cache_dir",  type=str,  default="cache/",    help="模型缓存目录")
+add_arg("bits",       type=int,  default=4,           help="使用量化多少位")
+add_arg("fp16",       type=bool, default=False,       help="是否半精度推理")
+add_arg("local_files_only", type=bool, default=False, help="是否只在本地加载模型，不尝试下载")
 add_arg("share", type=bool, default=False, help="是否共享链路")
 args = parser.parse_args()
 print_arguments(args)
 
 # 获取模型推理器
-predictor = Predictor(args.model_path, fp16=args.fp16, bits=args.bits)
-
+predictor = Predictor(model_path=args.model_path, lora_model=args.lora_model, fp16=args.fp16, bits=args.bits,
+                      cache_dir=args.cache_dir, local_files_only=args.local_files_only)
 
 def postprocess(self, y):
     if y is None:
