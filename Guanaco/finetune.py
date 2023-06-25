@@ -72,6 +72,7 @@ def get_model(args):
                                              bnb_4bit_use_double_quant=args.double_quant,
                                              bnb_4bit_quant_type=args.quant_type)
     model = AutoModelForCausalLM.from_pretrained(args.base_model,
+                                                 trust_remote_code=True,
                                                  cache_dir=args.cache_dir,
                                                  load_in_4bit=args.bits == 4,
                                                  load_in_8bit=args.bits == 8,
@@ -125,6 +126,7 @@ def get_tokenizer(args):
                                               local_files_only=args.local_files_only,
                                               padding_side="right",
                                               use_fast=False,
+                                              trust_remote_code=True,
                                               tokenizer_type='llama')
     tokenizer.pad_token_id = 0 if tokenizer.pad_token_id is None else tokenizer.pad_token_id
     return tokenizer

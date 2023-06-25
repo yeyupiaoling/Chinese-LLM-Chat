@@ -13,7 +13,7 @@ add_arg("model_path", type=str,  default="./models/llama-7b-finetune",   help="�
 add_arg("lora_model", type=str,  default=None,        help="不使用合并模型，直接使用Lora模型")
 add_arg("cache_dir",  type=str,  default="cache/",    help="模型缓存目录")
 add_arg("bits",       type=int,  default=4,           help="使用量化多少位")
-add_arg("fp16",       type=bool, default=False,       help="是否半精度推理")
+add_arg("fp16",       type=bool, default=True,        help="是否半精度推理")
 add_arg("local_files_only", type=bool, default=False, help="是否只在本地加载模型，不尝试下载")
 add_arg("share", type=bool, default=False, help="是否共享链路")
 args = parser.parse_args()
