@@ -124,13 +124,13 @@ python merge_lora.py --lora_model=output/checkpoint-final --output_dir=models/
  - `--model_path`指定的是微调后合并的模型。也支持直接使用原生模型，也就是`THUDM/chatglm-6b`。
 
 
-`cli_demo.py`是在终端直接使用，为了简便，这里直接使用的是最终输出，不是流式输出，没有打字效果。
+`cli_demo.py`是在终端直接使用，为了简便，这里直接使用的是最终输出。
 
 ```shell
 python cli_demo.py --model_path=./models/chatglm-6b-finetune
 ```
 
-`gradio_ui.py`使用Gradio搭建了一个网页，部署到服务器，在网页中使用聊天，为流式输出，有打字效果。
+`gradio_ui.py`使用Gradio搭建了一个网页，部署到服务器，在网页中使用聊天。
 
 ```shell
 python gradio_ui.py --model_path=./models/chatglm-6b-finetune
