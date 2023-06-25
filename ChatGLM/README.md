@@ -1,12 +1,12 @@
 # 项目介绍
 
-当前文件夹主要使用QLora对GhatGLM-6B模型的微调，然后合并模型。在使用方面包含了两种使用方式，分别是直接在终端上面运行，该方式是非流式的，也就是直接显示结果，没有打字过程。另外一种是使用Gradio技术在网页中使用，这个过程是流式的，可以实时显示打字效果。
+当前文件夹主要使用QLora对GhatGLM-6B模型的微调，然后合并模型。在使用方面包含了两种使用方式，一种是直接在终端上面运行，另外一种是使用Gradio技术在网页中使用，这个过程是流式的，可以实时显示打字效果。
 
 
 # 准备数据集
 
 在开启微调模型之前，需要准备好数据，数据的格式如下面所示，是一个JSON的数据列表，在[HuggingFace](https://huggingface.co/datasets/Chinese-Vicuna/guanaco_belle_merge_v1.0)
-也有一个开源的数据集。如果想自定义数据集的话，请按照以下格式生成。
+也有一个开源的数据集。如果想自定义数据集的话，请按照以下格式生成，如果有历史数据，那要添加history字段。
 
 ```json
 [
@@ -14,6 +14,21 @@
     "instruction": "用一句话描述地球为什么是独一无二的。\n ",
     "input": "",
     "output": "地球上有适宜生命存在的条件和多样化的生命形式。"
+  },
+  {
+    "instruction": "你可以给我提供一些创意，帮助我想到一种新产品吗",
+    "input": "",
+    "output": "当然可以。您希望产品有什么特点？它是什么类型的产品？什么是它的目标市场？给我一些更多的背景信息，我可以提供一些有建设性的想法。",
+    "history": [
+      [
+        "打开一首轻松愉悦的音乐。",
+        "当然，我会为您播放一首轻松愉悦的音乐。请告诉我您喜欢的流派或歌手，我可以为您推荐一些曲目。"
+      ],
+      [
+        "随便放一首。",
+        "好的，请稍等。这里有一首非常受欢迎的轻松音乐，“Happy” 由法国音乐制作人菲利普·加尔德排练。您的播放器将开始播放这首曲目。"
+      ]
+    ]
   }
 ]
 ```
@@ -107,20 +122,18 @@ python merge_lora.py --lora_model=output/checkpoint-final --output_dir=models/
 
 本项目提供两种预测方式，在推理的时候要注意几个参数：
  - `--model_path`指定的是微调后合并的模型。也支持直接使用原生模型，也就是`THUDM/chatglm-6b`。
- - `--num_gpus`可以指定使用多少个显卡进行推理，如果一张显存不够的话，使用多张显卡可以分配显存。
- - `--input_pattern`指定模型输入的Prompt，如果是使用原生的模型要指定为`chat`。
- - `--load_8bit`指定是否加载使用量化模型。
+
 
 `cli_demo.py`是在终端直接使用，为了简便，这里直接使用的是最终输出，不是流式输出，没有打字效果。
 
 ```shell
-python cli_demo.py --model_path=./models/chatglm-6b-finetune --num_gpus=2 --input_pattern=prompt --load_8bit=False
+python cli_demo.py --model_path=./models/chatglm-6b-finetune
 ```
 
 `gradio_ui.py`使用Gradio搭建了一个网页，部署到服务器，在网页中使用聊天，为流式输出，有打字效果。
 
 ```shell
-python gradio_ui.py --model_path=./models/chatglm-6b-finetune --num_gpus=2 --input_pattern=prompt --load_8bit=False
+python gradio_ui.py --model_path=./models/chatglm-6b-finetune
 ```
 
 # 参考资料
