@@ -25,14 +25,15 @@ base_model = AutoModelForCausalLM.from_pretrained(peft_config.base_model_name_or
                                                   local_files_only=args.local_files_only,
                                                   low_cpu_mem_usage=True,
                                                   torch_dtype=torch.float16,
-                                                  cache_dir=args.cache_dir)
+                                                  cache_dir=args.cache_dir,
+                                                  trust_remote_code=True)
 # 获取token器
 base_tokenizer = AutoTokenizer.from_pretrained(peft_config.base_model_name_or_path,
                                                cache_dir=args.cache_dir,
                                                local_files_only=args.local_files_only,
                                                padding_side="right",
                                                use_fast=False,
-                                               tokenizer_type='llama')
+                                               trust_remote_code=True)
 base_tokenizer.pad_token_id = 0 if base_tokenizer.pad_token_id is None else base_tokenizer.pad_token_id
 # 与Lora模型合并
 model = PeftModel.from_pretrained(base_model, args.lora_model)
