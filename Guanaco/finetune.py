@@ -126,8 +126,7 @@ def get_tokenizer(args):
                                               local_files_only=args.local_files_only,
                                               padding_side="right",
                                               use_fast=False,
-                                              trust_remote_code=True,
-                                              tokenizer_type='llama')
+                                              trust_remote_code=True)
     tokenizer.pad_token_id = 0 if tokenizer.pad_token_id is None else tokenizer.pad_token_id
     return tokenizer
 
