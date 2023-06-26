@@ -9,7 +9,7 @@ from utils.utils import print_arguments, add_arguments
 
 parser = argparse.ArgumentParser()
 add_arg = functools.partial(add_arguments, argparser=parser)
-add_arg("model_path", type=str,  default="./models/chatglm-6b-finetune",  help="合并后的模型路径或者原模型名称")
+add_arg("model_path", type=str,  default="./models/chatglm2-6b-finetune",  help="合并后的模型路径或者原模型名称")
 add_arg("cache_dir",  type=str,  default="cache/",    help="模型缓存目录")
 add_arg("bits",       type=int,  default=4,           help="使用量化多少位")
 add_arg("fp16",       type=bool, default=True,        help="是否半精度推理")
@@ -104,8 +104,8 @@ with gr.Blocks() as demo:
                 submitBtn = gr.Button("Submit", variant="primary")
         with gr.Column(scale=1):
             emptyBtn = gr.Button("Clear History")
-            max_length = gr.Slider(0, 4096, value=2048, step=1.0, label="Maximum length", interactive=True)
-            top_p = gr.Slider(0, 1, value=0.7, step=0.01, label="Top P", interactive=True)
+            max_length = gr.Slider(0, 32768, value=8192, step=1.0, label="Maximum length", interactive=True)
+            top_p = gr.Slider(0, 1, value=0.8, step=0.01, label="Top P", interactive=True)
             temperature = gr.Slider(0, 1, value=0.95, step=0.01, label="Temperature", interactive=True)
 
     session_id = gr.State('')

@@ -78,7 +78,7 @@ def get_model(args):
                                                  load_in_8bit=args.bits == 8,
                                                  local_files_only=args.local_files_only,
                                                  device_map=device_map,
-                                                 quantization_config=quantization_config,
+                                                 quantization_config=quantization_config if args.bits in [4, 8] else None,
                                                  torch_dtype=torch_dtype)
     setattr(model, 'model_parallel', True)
     setattr(model, 'is_parallelizable', True)

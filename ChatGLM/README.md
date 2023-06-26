@@ -1,7 +1,11 @@
 # 项目介绍
 
-当前文件夹主要使用QLora对GhatGLM-6B模型的微调，然后合并模型。在使用方面包含了两种使用方式，一种是直接在终端上面运行，另外一种是使用Gradio技术在网页中使用，这个过程是流式的，可以实时显示打字效果。
+当前文件夹主要使用QLora对GhatGLM2-6B模型的微调，然后合并模型。在使用方面包含了两种使用方式，一种是直接在终端上面运行，另外一种是使用Gradio技术在网页中使用，这个过程是流式的，可以实时显示打字效果。
 
+# 支持模型
+
+ - GhatGLM-6B
+ - GhatGLM2-6B
 
 # 准备数据集
 
@@ -37,11 +41,11 @@
 # 微调模型
 
 `finetune.py`就是微调GhatGLM-6B模型的，训练最重要的两个参数分别是：
- - `--base_model`指定微调的基础模型，这个参数值需要在[HuggingFace](https://huggingface.co/THUDM)存在的，目前只有`THUDM/chatglm-6b`，这个不需要提前下载，启动训练时可以自动下载，当然也可以提前下载，那么`--base_model`指定就是路径，同时`--local_files_only`设置为True。
+ - `--base_model`指定微调的基础模型，这个参数值需要在[HuggingFace](https://huggingface.co/THUDM)存在的，支持`THUDM/chatglm-6b`和`THUDM/chatglm2-6b`，模型使用`THUDM/chatglm2-6b`，这个不需要提前下载，启动训练时可以自动下载，当然也可以提前下载，那么`--base_model`指定就是路径，同时`--local_files_only`设置为True。
  - `--data_path`指定的是数据集路径，如果自己的数据，可以在这里[HuggingFace](https://huggingface.co/datasets/Chinese-Vicuna/guanaco_belle_merge_v1.0)下载下载数据来使用。
  - `--per_device_train_batch_size`指定的训练的batch大小，如果修改了这个参数，同时也要修改`--gradient_accumulation_steps`，使得它们的乘积一样。
  - `--output_path`指定训练时保存的检查点路径。
- - `--use_8bit`指定是否使用量化模型训练，如果想显存足够的话，最好将设置为False，这样训练速度快很多。
+ - `--bits`指定量化的位数，如何是4或者8则用量化模型训练，如果想显存足够的话，默认为4。
  - 其他更多的参数请查看这个程序。
 
 ### 单卡训练
@@ -49,7 +53,7 @@
 单卡训练命令如下，Windows系统可以不添加`CUDA_VISIBLE_DEVICES`参数。
 
 ```shell
-CUDA_VISIBLE_DEVICES=0 python finetune.py --base_model=THUDM/chatglm-6b --output_dir=output/
+CUDA_VISIBLE_DEVICES=0 python finetune.py --base_model=THUDM/chatglm2-6b --output_dir=output/
 ```
 
 ### 多卡训练
@@ -59,7 +63,7 @@ CUDA_VISIBLE_DEVICES=0 python finetune.py --base_model=THUDM/chatglm-6b --output
 1. 使用torchrun启动多卡训练，命令如下，通过`--nproc_per_node`指定使用的显卡数量。
 
 ```shell
-CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=2 finetune.py --base_model=THUDM/chatglm-6b --output_dir=output/
+CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=2 finetune.py --base_model=THUDM/chatglm2-6b --output_dir=output/
 ```
 
 2. 使用accelerate启动多卡训练，如果是第一次使用accelerate，要配置训练参数，方式如下。
@@ -97,7 +101,7 @@ accelerate env
 开始训练命令如下。
 
 ```shell
-accelerate launch finetune.py --base_model=THUDM/chatglm-6b --output_dir=output/
+accelerate launch finetune.py --base_model=THUDM/chatglm2-6b --output_dir=output/
 ```
 
 输出日志如下：
@@ -121,19 +125,21 @@ python merge_lora.py --lora_model=output/checkpoint-final --output_dir=models/
 # 预测
 
 本项目提供两种预测方式，在推理的时候要注意几个参数：
- - `--model_path`指定的是微调后合并的模型。也支持直接使用原生模型，也就是`THUDM/chatglm-6b`。
+ - `--model_path`指定的是微调后合并的模型。也支持直接使用原生模型，也就是`THUDM/chatglm2-6b`。
+ - `--bits`指定量化的位数，可以使4或者8，如果不是，则使用半精度。
+ - `--fp16`是否是使用半精度进行推理。
 
 
 `cli_demo.py`是在终端直接使用，为了简便，这里直接使用的是最终输出。
 
 ```shell
-python cli_demo.py --model_path=./models/chatglm-6b-finetune
+python cli_demo.py --model_path=./models/chatglm2-6b-finetune
 ```
 
 `gradio_ui.py`使用Gradio搭建了一个网页，部署到服务器，在网页中使用聊天。
 
 ```shell
-python gradio_ui.py --model_path=./models/chatglm-6b-finetune
+python gradio_ui.py --model_path=./models/chatglm2-6b-finetune
 ```
 
 # 参考资料

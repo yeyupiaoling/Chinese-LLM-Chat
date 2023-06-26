@@ -9,7 +9,7 @@ from utils.chatglm_predictor import ChatGLMPredictor
 
 parser = argparse.ArgumentParser()
 add_arg = functools.partial(add_arguments, argparser=parser)
-add_arg("model_path", type=str, default="./models/chatglm-6b-finetune",  help="合并后的模型路径或者原模型名称")
+add_arg("model_path", type=str, default="./models/chatglm2-6b-finetune",  help="合并后的模型路径或者原模型名称")
 add_arg("cache_dir",  type=str,  default="cache/",    help="模型缓存目录")
 add_arg("bits",       type=int,  default=4,           help="使用量化多少位")
 add_arg("fp16",       type=bool, default=True,        help="是否半精度推理")

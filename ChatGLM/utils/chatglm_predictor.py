@@ -4,7 +4,7 @@ from typing import Dict
 import torch
 from transformers import AutoConfig, AutoModel, AutoTokenizer
 
-from ChatGLM.utils.model_utils import auto_configure_device_map
+from utils.model_utils import auto_configure_device_map
 
 
 class ChatGLMPredictor:
@@ -29,7 +29,8 @@ class ChatGLMPredictor:
         # 量化模型
         model.requires_grad_(False)
         model = model.half()
-        model.quantize(bits)
+        if bits in [4, 8]:
+            model.quantize(bits)
         # 多卡处理
         if torch.cuda.device_count() > 1:
             from accelerate import dispatch_model

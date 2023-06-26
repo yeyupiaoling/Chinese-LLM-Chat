@@ -12,7 +12,7 @@ from utils.utils import add_arguments, print_arguments
 
 parser = argparse.ArgumentParser(description=__doc__)
 add_arg = functools.partial(add_arguments, argparser=parser)
-add_arg("base_model",  type=str, default="THUDM/chatglm-6b",    help="微调的基础模型")
+add_arg("base_model",  type=str, default="THUDM/chatglm2-6b",   help="微调的基础模型")
 add_arg("data_path",   type=str, default="dataset/merge.json",  help="数据集的路径")
 add_arg("output_path", type=str, default="output/",             help="模型保存路径")
 add_arg("cache_dir",   type=str, default="cache/",              help="模型缓存目录")
@@ -46,11 +46,9 @@ print_arguments(args)
 
 
 # 多卡时GPU处理
-device_map = "auto"
 world_size = int(os.environ.get("WORLD_SIZE", 1))
 ddp = world_size != 1
-if ddp:
-    device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
+device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
 # 获取数据集
 dataset = load_dataset("json", data_files={'train': args.data_path})
 # 获取token器
@@ -75,7 +73,7 @@ model = AutoModel.from_pretrained(args.base_model,
                                   load_in_4bit=args.bits == 4,
                                   load_in_8bit=args.bits == 8,
                                   device_map=device_map,
-                                  quantization_config=quantization_config,
+                                  quantization_config=quantization_config if args.bits in [4, 8] else None,
                                   torch_dtype=torch_dtype)
 
 # 量化
