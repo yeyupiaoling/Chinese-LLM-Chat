@@ -2,7 +2,9 @@ import uuid
 from typing import Dict
 
 import torch
-from transformers import AutoConfig, BitsAndBytesConfig, AutoModel, AutoTokenizer
+from transformers import AutoConfig, AutoModel, AutoTokenizer
+
+from ChatGLM.utils.model_utils import auto_configure_device_map
 
 
 class ChatGLMPredictor:
@@ -15,35 +17,28 @@ class ChatGLMPredictor:
         self.histories: Dict[str, list] = {}
 
     @staticmethod
-    def load_model(model_path=None, fp16=True, bf16=False, bits=8, double_quant=True, quant_type="nf4",
-                   cache_dir='cache', local_files_only=False):
+    def load_model(model_path=None, fp16=True, bf16=False, bits=8, cache_dir='cache', local_files_only=False):
         config_kwargs = {"trust_remote_code": True, "cache_dir": cache_dir, "local_files_only": local_files_only}
         # 获取tokenizer
         tokenizer = AutoTokenizer.from_pretrained(model_path, **config_kwargs)
 
         config = AutoConfig.from_pretrained(model_path, **config_kwargs)
-        config_kwargs["device_map"] = "auto"
-        # 量化参数
-        torch_dtype = (torch.float32 if fp16 else (torch.bfloat16 if bf16 else torch.float32))
-        compute_dtype = (torch.float16 if fp16 else (torch.bfloat16 if bf16 else torch.float32))
-        if bits == 8:
-            config_kwargs["load_in_8bit"] = True
-            config_kwargs["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True, llm_int8_threshold=6.0)
-        elif bits == 4:
-            config_kwargs["load_in_4bit"] = True
-            config_kwargs["quantization_config"] = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_compute_dtype=compute_dtype,
-                bnb_4bit_use_double_quant=double_quant,
-                bnb_4bit_quant_type=quant_type)
         # 加载模型
-        model = AutoModel.from_pretrained(model_path, config=config, torch_dtype=torch_dtype,
-                                          low_cpu_mem_usage=True, **config_kwargs)
-
+        torch_dtype = (torch.float32 if fp16 else (torch.bfloat16 if bf16 else torch.float32))
+        model = AutoModel.from_pretrained(model_path, torch_dtype=torch_dtype, config=config, **config_kwargs)
+        # 量化模型
         model.requires_grad_(False)
-        if bits not in [4, 8]:
-            model = model.half()
+        model = model.half()
+        model.quantize(bits)
+        # 多卡处理
+        if torch.cuda.device_count() > 1:
+            from accelerate import dispatch_model
+            device_map = auto_configure_device_map(torch.cuda.device_count())
+            model = dispatch_model(model, device_map)
+        else:
+            model = model.cuda()
 
+        model.eval()
         return model, tokenizer
 
     # 开始流式识别

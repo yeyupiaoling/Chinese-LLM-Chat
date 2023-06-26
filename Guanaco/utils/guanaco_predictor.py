@@ -51,14 +51,13 @@ class Predictor:
                                                      config=config,
                                                      torch_dtype=torch_dtype,
                                                      low_cpu_mem_usage=True,
-                                                     trust_remote_code=True,
                                                      **config_kwargs)
         # 合并Lora参数
         if lora_model is not None:
             model = PeftModel.from_pretrained(model, lora_model, is_trainable=False)
         # 获取tokenizer
         config_kwargs = {"trust_remote_code": True, "cache_dir": cache_dir, "local_files_only": local_files_only}
-        tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True, **config_kwargs)
+        tokenizer = AutoTokenizer.from_pretrained(model_path, **config_kwargs)
         tokenizer.pad_token_id = 0 if tokenizer.pad_token_id is None else tokenizer.pad_token_id
 
         model.requires_grad_(False)

@@ -1,3 +1,5 @@
+from typing import Dict
+
 import bitsandbytes as bnb
 import torch
 from transformers.trainer_pt_utils import LabelSmoother
@@ -20,3 +22,24 @@ def find_all_linear_names(bits, model):
 
 def load_from_checkpoint(resume_from_checkpoint, model=None):
     pass
+
+
+def auto_configure_device_map(num_gpus: int) -> Dict[str, int]:
+    num_layers = 28
+    layers_per_gpu = 30 / num_gpus
+    device_map = {"transformer.word_embeddings": 0,
+                  "transformer.final_layernorm": 0,
+                  "transformer.prefix_encoder": 0,
+                  "lm_head": 0}
+    added_layers = 2
+    target_gpu = 0
+
+    for i in range(num_layers):
+        if added_layers >= layers_per_gpu:
+            target_gpu += 1
+            added_layers = 0
+        assert target_gpu < num_gpus
+        device_map[f"transformer.layers.{i}"] = target_gpu
+        added_layers += 1
+
+    return device_map
