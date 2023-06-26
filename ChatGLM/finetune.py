@@ -35,7 +35,7 @@ add_arg("bf16", type=bool, default=False,        help="是否使用bf16")
 add_arg("max_memory_MB", type=int, default=8000, help="执行最大使用的显存")
 add_arg("gradient_checkpointing", type=bool, default=True, help="使用梯度检查点机制节省内存，但会以较慢的反向传递为代价")
 # Lora参数
-add_arg("bits", type=int, default=4,             help="量化的位数，只能是4或者8")
+add_arg("bits", type=int, default=4,             help="量化的位数，只能是4或者8，其他数字则不使用量化")
 add_arg("lora_r", type=int, default=64,          help="Lora参数r")
 add_arg("lora_alpha", type=int, default=16,      help="Lora参数lora_alpha")
 add_arg("lora_dropout", type=float, default=0.1, help="Lora参数lora_dropout")
